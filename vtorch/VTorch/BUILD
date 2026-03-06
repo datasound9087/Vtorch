@@ -5,8 +5,8 @@ my_binary(
     srcs = glob(["*.cpp"]),
     deps = [
         "@glfw",
+        "@glm",
         "@gsl",
         "@vk_sdk//:vulkan",
-        "@glm",
-    ]
+    ],
 )
