@@ -8,3 +8,39 @@ bazel_dep(name = "rules_cc", version = "0.2.17")
 
 # c++ bits
 bazel_dep(name = "googletest", version = "1.17.0")
+
+bazel_dep(name = "rules_vulkan", version = "0.7.0")
+vulkan_sdk = use_extension("@rules_vulkan//vulkan:extensions.bzl", "vulkan_sdk")
+vulkan_sdk.toolchain(
+    name = "vk_sdk",
+    version = "1.4.313",
+)
+use_repo(vulkan_sdk, "vk_sdk")
+register_toolchains("@vk_sdk//:all")
+
+# External non-bazel repo
+http_archive = use_repo_rule("@bazel_tools//tools/build_defs/repo:http.bzl", "http_archive")
+
+http_archive(
+    name = "glfw",
+    build_file = "//tools/external:glfw.BUILD",
+    sha256 = "a133ddc3d3c66143eba9035621db8e0bcf34dba1ee9514a9e23e96afd39fd57a",
+    strip_prefix = "glfw-3.4",
+    url = "https://github.com/glfw/glfw/archive/refs/tags/3.4.zip",
+)
+
+http_archive(
+    name = "gsl",
+    build_file = "//tools/external:gsl.BUILD",
+    sha256 = "C9291D95F5F6E5C561990D06A589B01D89E553D0F366F0CE723DD1788E7A6076",
+    strip_prefix = "GSL-4.2.1",
+    url = "https://github.com/microsoft/GSL/archive/refs/tags/v4.2.1.zip",
+)
+
+http_archive(
+    name = "glm",
+    build_file = "//tools/external:glm.BUILD",
+    sha256 = "1c0a0fced9b0d87c7b7bc94e40be490cff6d4c83c25db8488d8f33754e7fdeb2",
+    strip_prefix = "glm",
+    url = "https://github.com/g-truc/glm/releases/download/1.0.3/glm-1.0.3.zip",
+)
