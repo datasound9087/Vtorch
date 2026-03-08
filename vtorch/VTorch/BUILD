@@ -7,6 +7,7 @@ my_binary(
         "@glfw",
         "@glm",
         "@gsl",
+        "@spdlog",
         "@vk_sdk//:vulkan",
     ],
 )

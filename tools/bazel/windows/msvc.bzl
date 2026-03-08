@@ -1471,172 +1471,149 @@ def _impl(ctx):
             ],
         )
 
-        if ctx.attr.cpu == "x64_windows" and ctx.attr.compiler == "mingw-gcc":
-            archive_param_file_feature = feature(
-                name = "archive_param_file",
-                enabled = True,
-            )
+        supports_pic_feature = feature(
+            name = "supports_pic",
+            enabled = True,
+        )
 
-            compiler_param_file_feature = feature(
-                name = "compiler_param_file",
-            )
+        sysroot_feature = feature(
+            name = "sysroot",
+            enabled = True,
+            flag_sets = [
+                flag_set(
+                    actions = [
+                        ACTION_NAMES.preprocess_assemble,
+                        ACTION_NAMES.linkstamp_compile,
+                        ACTION_NAMES.c_compile,
+                        ACTION_NAMES.cpp_compile,
+                        ACTION_NAMES.cpp_header_parsing,
+                        ACTION_NAMES.cpp_module_compile,
+                        ACTION_NAMES.cpp_module_codegen,
+                        ACTION_NAMES.cpp_module_deps_scanning,
+                        ACTION_NAMES.cpp20_module_compile,
+                        ACTION_NAMES.cpp20_module_codegen,
+                        ACTION_NAMES.lto_backend,
+                        ACTION_NAMES.clif_match,
+                        ACTION_NAMES.cpp_link_executable,
+                        ACTION_NAMES.cpp_link_dynamic_library,
+                        ACTION_NAMES.cpp_link_nodeps_dynamic_library,
+                    ],
+                    flag_groups = [
+                        flag_group(
+                            flags = ["--sysroot=%{sysroot}"],
+                            expand_if_available = "sysroot",
+                        ),
+                    ],
+                ),
+            ],
+        )
 
-            features = [
-                targets_windows_feature,
-                copy_dynamic_libraries_to_binary_feature,
-                gcc_env_feature,
-                default_compile_flags_feature,
-                archive_param_file_feature,
-                compiler_param_file_feature,
-                default_link_flags_feature,
-                supports_dynamic_linker_feature,
-                dbg_feature,
-                opt_feature,
-            ]
-        else:
-            supports_pic_feature = feature(
-                name = "supports_pic",
-                enabled = True,
-            )
+        fdo_optimize_feature = feature(
+            name = "fdo_optimize",
+            flag_sets = [
+                flag_set(
+                    actions = [ACTION_NAMES.c_compile, ACTION_NAMES.cpp_compile],
+                    flag_groups = [
+                        flag_group(
+                            flags = [
+                                "-fprofile-use=%{fdo_profile_path}",
+                            ] + profile_correction_flags,
+                            expand_if_available = "fdo_profile_path",
+                        ),
+                    ],
+                ),
+            ],
+            provides = ["profile"],
+        )
 
-            sysroot_feature = feature(
-                name = "sysroot",
-                enabled = True,
-                flag_sets = [
-                    flag_set(
-                        actions = [
-                            ACTION_NAMES.preprocess_assemble,
-                            ACTION_NAMES.linkstamp_compile,
-                            ACTION_NAMES.c_compile,
-                            ACTION_NAMES.cpp_compile,
-                            ACTION_NAMES.cpp_header_parsing,
-                            ACTION_NAMES.cpp_module_compile,
-                            ACTION_NAMES.cpp_module_codegen,
-                            ACTION_NAMES.cpp_module_deps_scanning,
-                            ACTION_NAMES.cpp20_module_compile,
-                            ACTION_NAMES.cpp20_module_codegen,
-                            ACTION_NAMES.lto_backend,
-                            ACTION_NAMES.clif_match,
-                            ACTION_NAMES.cpp_link_executable,
-                            ACTION_NAMES.cpp_link_dynamic_library,
-                            ACTION_NAMES.cpp_link_nodeps_dynamic_library,
-                        ],
-                        flag_groups = [
-                            flag_group(
-                                flags = ["--sysroot=%{sysroot}"],
-                                expand_if_available = "sysroot",
-                            ),
-                        ],
-                    ),
-                ],
-            )
+        treat_warnings_as_errors_feature = feature(
+            name = "treat_warnings_as_errors",
+            flag_sets = [
+                flag_set(
+                    actions = [ACTION_NAMES.c_compile, ACTION_NAMES.cpp_compile],
+                    flag_groups = [flag_group(flags = ["-Werror"])],
+                ),
+                flag_set(
+                    actions = all_link_actions,
+                    flag_groups = [flag_group(flags = ["-Wl,-fatal-warnings"])],
+                ),
+            ],
+        )
 
-            fdo_optimize_feature = feature(
-                name = "fdo_optimize",
-                flag_sets = [
-                    flag_set(
-                        actions = [ACTION_NAMES.c_compile, ACTION_NAMES.cpp_compile],
-                        flag_groups = [
-                            flag_group(
-                                flags = [
-                                    "-fprofile-use=%{fdo_profile_path}",
-                                ] + profile_correction_flags,
-                                expand_if_available = "fdo_profile_path",
-                            ),
-                        ],
-                    ),
-                ],
-                provides = ["profile"],
-            )
+        user_compile_flags_feature = feature(
+            name = "user_compile_flags",
+            enabled = True,
+            flag_sets = [
+                flag_set(
+                    actions = [ACTION_NAMES.c_compile],
+                    flag_groups = ([
+                        flag_group(
+                            flags = ctx.attr.conly_flags,
+                        ),
+                    ] if ctx.attr.conly_flags else []),
+                ),
+                flag_set(
+                    actions = [
+                        ACTION_NAMES.linkstamp_compile,
+                        ACTION_NAMES.cpp_compile,
+                        ACTION_NAMES.cpp_header_parsing,
+                        ACTION_NAMES.cpp_module_compile,
+                        ACTION_NAMES.cpp_module_codegen,
+                        ACTION_NAMES.lto_backend,
+                        ACTION_NAMES.clif_match,
+                    ],
+                    flag_groups = ([
+                        flag_group(
+                            flags = ctx.attr.cxx_flags,
+                        ),
+                    ] if ctx.attr.cxx_flags else []),
+                ),
+                flag_set(
+                    actions = [
+                        ACTION_NAMES.assemble,
+                        ACTION_NAMES.preprocess_assemble,
+                        ACTION_NAMES.linkstamp_compile,
+                        ACTION_NAMES.c_compile,
+                        ACTION_NAMES.cpp_compile,
+                        ACTION_NAMES.cpp_header_parsing,
+                        ACTION_NAMES.cpp_module_compile,
+                        ACTION_NAMES.cpp_module_codegen,
+                        ACTION_NAMES.cpp_module_deps_scanning,
+                        ACTION_NAMES.cpp20_module_compile,
+                        ACTION_NAMES.cpp20_module_codegen,
+                        ACTION_NAMES.lto_backend,
+                        ACTION_NAMES.clif_match,
+                    ],
+                    flag_groups = ([
+                        flag_group(
+                            flags = ctx.attr.all_compile_flags,
+                        ),
+                    ] if ctx.attr.all_compile_flags else []) + [
+                        flag_group(
+                            flags = ["%{user_compile_flags}"],
+                            iterate_over = "user_compile_flags",
+                            expand_if_available = "user_compile_flags",
+                        ),
+                    ],
+                ),
+            ],
+        )
 
-            treat_warnings_as_errors_feature = feature(
-                name = "treat_warnings_as_errors",
-                flag_sets = [
-                    flag_set(
-                        actions = [ACTION_NAMES.c_compile, ACTION_NAMES.cpp_compile],
-                        flag_groups = [flag_group(flags = ["-Werror"])],
-                    ),
-                    flag_set(
-                        actions = all_link_actions,
-                        flag_groups = [flag_group(flags = ["-Wl,-fatal-warnings"])],
-                    ),
-                ],
-            )
-
-            user_compile_flags_feature = feature(
-                name = "user_compile_flags",
-                enabled = True,
-                flag_sets = [
-                    flag_set(
-                        actions = [ACTION_NAMES.c_compile],
-                        flag_groups = ([
-                            flag_group(
-                                flags = ctx.attr.conly_flags,
-                            ),
-                        ] if ctx.attr.conly_flags else []),
-                    ),
-                    flag_set(
-                        actions = [
-                            ACTION_NAMES.linkstamp_compile,
-                            ACTION_NAMES.cpp_compile,
-                            ACTION_NAMES.cpp_header_parsing,
-                            ACTION_NAMES.cpp_module_compile,
-                            ACTION_NAMES.cpp_module_codegen,
-                            ACTION_NAMES.lto_backend,
-                            ACTION_NAMES.clif_match,
-                        ],
-                        flag_groups = ([
-                            flag_group(
-                                flags = ctx.attr.cxx_flags,
-                            ),
-                        ] if ctx.attr.cxx_flags else []),
-                    ),
-                    flag_set(
-                        actions = [
-                            ACTION_NAMES.assemble,
-                            ACTION_NAMES.preprocess_assemble,
-                            ACTION_NAMES.linkstamp_compile,
-                            ACTION_NAMES.c_compile,
-                            ACTION_NAMES.cpp_compile,
-                            ACTION_NAMES.cpp_header_parsing,
-                            ACTION_NAMES.cpp_module_compile,
-                            ACTION_NAMES.cpp_module_codegen,
-                            ACTION_NAMES.cpp_module_deps_scanning,
-                            ACTION_NAMES.cpp20_module_compile,
-                            ACTION_NAMES.cpp20_module_codegen,
-                            ACTION_NAMES.lto_backend,
-                            ACTION_NAMES.clif_match,
-                        ],
-                        flag_groups = ([
-                            flag_group(
-                                flags = ctx.attr.all_compile_flags,
-                            ),
-                        ] if ctx.attr.all_compile_flags else []) + [
-                            flag_group(
-                                flags = ["%{user_compile_flags}"],
-                                iterate_over = "user_compile_flags",
-                                expand_if_available = "user_compile_flags",
-                            ),
-                        ],
-                    ),
-                ],
-            )
-
-            features = [
-                targets_windows_feature,
-                copy_dynamic_libraries_to_binary_feature,
-                gcc_env_feature,
-                supports_pic_feature,
-                default_compile_flags_feature,
-                default_link_flags_feature,
-                fdo_optimize_feature,
-                supports_dynamic_linker_feature,
-                dbg_feature,
-                opt_feature,
-                user_compile_flags_feature,
-                treat_warnings_as_errors_feature,
-                sysroot_feature,
-            ]
+        features = [
+            targets_windows_feature,
+            copy_dynamic_libraries_to_binary_feature,
+            gcc_env_feature,
+            supports_pic_feature,
+            default_compile_flags_feature,
+            default_link_flags_feature,
+            fdo_optimize_feature,
+            supports_dynamic_linker_feature,
+            dbg_feature,
+            opt_feature,
+            user_compile_flags_feature,
+            treat_warnings_as_errors_feature,
+            sysroot_feature,
+        ]
 
     tool_paths = [
         tool_path(name = name, path = path)
