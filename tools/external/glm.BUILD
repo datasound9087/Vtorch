@@ -6,6 +6,7 @@ my_library(
         "glm/**/*.hpp",
         "glm/**/*.h",
     ]),
+    features = ["-all_warnings"],
     textual_hdrs = glob(["glm/**/*.inl"]),
     visibility = ["//visibility:public"],
 )

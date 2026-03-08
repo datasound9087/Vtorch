@@ -15,6 +15,7 @@ my_library(
         ],
         "//conditions:default": [],
     }),
+    features = ["-all_warnings"],
     strip_include_prefix = "include",
     visibility = ["//visibility:public"],
 )
