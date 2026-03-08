@@ -1,21 +1,26 @@
-module(name = "vtorch", version = "1.0")
+module(
+    name = "vtorch",
+    version = "1.0",
+)
 
 # Bazel libraries
 bazel_dep(name = "platforms", version = "1.0.0")
 bazel_dep(name = "bazel_skylib", version = "1.9.0")
 bazel_dep(name = "rules_pkg", version = "1.2.0")
 bazel_dep(name = "rules_cc", version = "0.2.17")
+bazel_dep(name = "rules_python", version = "1.9.0")
 
 # c++ bits
 bazel_dep(name = "googletest", version = "1.17.0")
-
 bazel_dep(name = "rules_vulkan", version = "0.7.0")
+
 vulkan_sdk = use_extension("@rules_vulkan//vulkan:extensions.bzl", "vulkan_sdk")
 vulkan_sdk.toolchain(
     name = "vk_sdk",
     version = "1.4.313",
 )
 use_repo(vulkan_sdk, "vk_sdk")
+
 register_toolchains("@vk_sdk//:all")
 
 # External non-bazel repo
@@ -43,4 +48,16 @@ http_archive(
     sha256 = "1c0a0fced9b0d87c7b7bc94e40be490cff6d4c83c25db8488d8f33754e7fdeb2",
     strip_prefix = "glm",
     url = "https://github.com/g-truc/glm/releases/download/1.0.3/glm-1.0.3.zip",
+)
+
+http_archive(
+    name = "spdlog",
+    build_file = "//tools/external:spdlog.BUILD",
+    sha256 = "",
+    strip_prefix = "spdlog-1.17.0",
+    url = "https://github.com/gabime/spdlog/archive/refs/tags/v1.17.0.zip",
+)
+
+register_toolchains(
+    "//tools/bazel/windows:cc_toolchain_for_windows_x86_64",
 )

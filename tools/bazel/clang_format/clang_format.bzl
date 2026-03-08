@@ -1,3 +1,5 @@
+load("@rules_cc//cc/common:cc_info.bzl", "CcInfo")
+
 def _get_files(ctx, attr):
     if not hasattr(ctx.rule.attr, attr):
         return []
@@ -20,7 +22,7 @@ def _format_file(ctx, package, file):
 
     # Create args
     args = ctx.actions.args()
-    args.add(clang_format_info.path)
+    args.add(ctx.attr._executable)
     args.add("--Werror")
     args.add("--dry-run")
     args.add(file.path)
@@ -31,7 +33,7 @@ def _format_file(ctx, package, file):
     ctx.actions.run(
         inputs = [file],
         outputs = [outfile],
-        executable = ctx.executable._executable,
+        executable = ctx.executable._wrapper,
         arguments = [args],
         mnemonic = "ClangFormat",
     )
@@ -68,10 +70,13 @@ clang_format_aspect = aspect(
             default = Label("//tools/bazel/clang_format:clang_format_file"),
             allow_single_file = True,
         ),
-        "_executable": attr.label(
-            default = Label("C:/Users/Sam/dev/clang-format.exe"),
-            executable = True,
-            cfg = "exec",
-        )
+        "_executable": attr.string(
+            default = "C:/Users/Sam/dev/clang-format.exe",
+        ),
+        "_wrapper": attr.label(
+            default = Label("//tools/bazel/clang_format:wrapper"),
+            executable = True,  # Must be runnable by ctx.actions.run
+            cfg = "exec",  # Target is built for execution platform
+        ),
     },
 )

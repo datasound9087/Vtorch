@@ -1,0 +1,4 @@
+# Be explicit with the output cache
+startup --output_base C:/Users/Sam/dev/_bazel
+
+build --aspects //tools/bazel/clang_format:clang_format.bzl%clang_format_aspect

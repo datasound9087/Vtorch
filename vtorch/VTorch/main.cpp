@@ -1,8 +1,9 @@
-#include <GLFW/glfw3.h>
-#include <gsl/gsl>
-#include <glm/glm.hpp>
+// #include <GLFW/glfw3.h>
+// // #include <spdlog/spdlog.h>
 
-int main()
-{
-    return 0;
-}
+// #include <glm/glm.hpp>
+// #include <gsl/gsl>
+
+#include <iostream>
+
+int main() { return 0; }
