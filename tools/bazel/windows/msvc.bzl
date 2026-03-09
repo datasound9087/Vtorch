@@ -153,7 +153,6 @@ def _impl(ctx):
     ]
 
     default_link_flags_list = [
-        "/nologo",
         "/IGNORE:4042",
         "/PROFILE",
         "/GUARD:CF",
@@ -162,7 +161,6 @@ def _impl(ctx):
     cpp_link_nodeps_dynamic_library_action = action_config(
         action_name = ACTION_NAMES.cpp_link_nodeps_dynamic_library,
         implies = [
-            "nologo",
             "shared_flag",
             "linkstamps",
             "output_execpath_flags",
@@ -170,7 +168,7 @@ def _impl(ctx):
             "user_link_flags",
             "linker_param_file",
             "msvc_env",
-            "no_stripping",
+            "strip_debug_symbols",
             "has_configured_linker_path",
             "def_file",
         ],
@@ -180,7 +178,6 @@ def _impl(ctx):
     cpp_link_static_library_action = action_config(
         action_name = ACTION_NAMES.cpp_link_static_library,
         implies = [
-            "nologo",
             "archiver_flags",
             "input_param_flags",
             "linker_param_file",
@@ -192,7 +189,6 @@ def _impl(ctx):
     assemble_action = action_config(
         action_name = ACTION_NAMES.assemble,
         implies = [
-            "nologo",
             "compiler_input_flags",
             "compiler_output_flags",
             "msvc_env",
@@ -203,7 +199,6 @@ def _impl(ctx):
     preprocess_assemble_action = action_config(
         action_name = ACTION_NAMES.preprocess_assemble,
         implies = [
-            "nologo",
             "compiler_input_flags",
             "compiler_output_flags",
             "msvc_env",
@@ -214,7 +209,6 @@ def _impl(ctx):
     c_compile_action = action_config(
         action_name = ACTION_NAMES.c_compile,
         implies = [
-            "nologo",
             "compiler_input_flags",
             "compiler_output_flags",
             "msvc_env",
@@ -226,7 +220,6 @@ def _impl(ctx):
     linkstamp_compile_action = action_config(
         action_name = ACTION_NAMES.linkstamp_compile,
         implies = [
-            "nologo",
             "compiler_input_flags",
             "compiler_output_flags",
             "default_compile_flags",
@@ -240,7 +233,6 @@ def _impl(ctx):
     cpp_compile_action = action_config(
         action_name = ACTION_NAMES.cpp_compile,
         implies = [
-            "nologo",
             "compiler_input_flags",
             "compiler_output_flags",
             "msvc_env",
@@ -252,14 +244,13 @@ def _impl(ctx):
     cpp_link_executable_action = action_config(
         action_name = ACTION_NAMES.cpp_link_executable,
         implies = [
-            "nologo",
             "linkstamps",
             "output_execpath_flags",
             "input_param_flags",
             "user_link_flags",
             "linker_param_file",
             "msvc_env",
-            "no_stripping",
+            "strip_debug_symbols",
         ],
         tools = [tool(path = ctx.attr.msvc_link_path)],
     )
@@ -267,7 +258,6 @@ def _impl(ctx):
     cpp_link_dynamic_library_action = action_config(
         action_name = ACTION_NAMES.cpp_link_dynamic_library,
         implies = [
-            "nologo",
             "shared_flag",
             "linkstamps",
             "output_execpath_flags",
@@ -275,7 +265,7 @@ def _impl(ctx):
             "user_link_flags",
             "linker_param_file",
             "msvc_env",
-            "no_stripping",
+            "strip_debug_symbols",
             "has_configured_linker_path",
             "def_file",
         ],
@@ -293,7 +283,6 @@ def _impl(ctx):
             ),
         ],
         implies = [
-            "nologo",
             "compiler_input_flags",
             "compiler_output_flags",
             "msvc_env",
@@ -321,7 +310,6 @@ def _impl(ctx):
             ),
         ],
         implies = [
-            "nologo",
             "compiler_input_flags",
             "compiler_output_flags",
             "msvc_env",
@@ -337,7 +325,6 @@ def _impl(ctx):
             ),
         ],
         implies = [
-            "nologo",
             "compiler_input_flags",
             "compiler_output_flags",
             "msvc_env",
@@ -883,7 +870,9 @@ def _impl(ctx):
 
     supports_dynamic_linker_feature = feature(name = "supports_dynamic_linker", enabled = True)
 
-    no_stripping_feature = feature(name = "no_stripping")
+    # Stop rules_cc from adding an invalid linker parameter
+    no_stripping_feature = feature(name = "strip_debug_symbols", enabled = True)
+    no_random_seed_feature = feature(name = "random_seed", enabled = True)
 
     linker_param_file_feature = feature(
         name = "linker_param_file",
@@ -1138,25 +1127,10 @@ def _impl(ctx):
 
     nologo_feature = feature(
         name = "nologo",
+        enabled = True,
         flag_sets = [
             flag_set(
-                actions = [
-                    ACTION_NAMES.c_compile,
-                    ACTION_NAMES.linkstamp_compile,
-                    ACTION_NAMES.cpp_compile,
-                    ACTION_NAMES.cpp_module_compile,
-                    ACTION_NAMES.cpp_module_codegen,
-                    ACTION_NAMES.cpp_header_parsing,
-                    ACTION_NAMES.cpp_module_deps_scanning,
-                    ACTION_NAMES.cpp20_module_compile,
-                    ACTION_NAMES.cpp20_module_codegen,
-                    ACTION_NAMES.assemble,
-                    ACTION_NAMES.preprocess_assemble,
-                    ACTION_NAMES.cpp_link_executable,
-                    ACTION_NAMES.cpp_link_dynamic_library,
-                    ACTION_NAMES.cpp_link_nodeps_dynamic_library,
-                    ACTION_NAMES.cpp_link_static_library,
-                ],
+                actions = all_compile_actions + all_link_actions,
                 flag_groups = [flag_group(flags = ["/nologo"])],
             ),
         ],
@@ -1277,6 +1251,7 @@ def _impl(ctx):
         nologo_feature,
         has_configured_linker_path_feature,
         no_stripping_feature,
+        no_random_seed_feature,
         targets_windows_feature,
         copy_dynamic_libraries_to_binary_feature,
         default_compile_flags_feature,
