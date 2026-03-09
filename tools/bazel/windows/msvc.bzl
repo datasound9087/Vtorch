@@ -155,7 +155,6 @@ def _impl(ctx):
     default_link_flags_list = [
         "/nologo",
         "/IGNORE:4042",
-        "/IGNORE:4044",
         "/PROFILE",
         "/GUARD:CF",
     ]
