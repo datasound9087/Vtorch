@@ -128,6 +128,7 @@ def _impl(ctx):
         "/Zm500",
         # Extern "c" never throws exceptions. C++ does (with SEH exceptions)
         "/EHsc",
+        "/guard:cf",
         # Language constructs conform to standards
         "/permissive-",
         # Recommended SDL checks
@@ -137,13 +138,26 @@ def _impl(ctx):
         # Set source and execution character sets to UTF-8
         "/utf-8",
         # Enable all warnings
-        # "/Wall",
+        "/Wall",
         "/wd4351",
         "/wd4291",
         "/wd4250",
         "/wd4996",
+        "/wd4514",
         "/Zc:__cplusplus",
         "/Zc:__STDC__",
+        "/Zc:wchar_t",
+        "/ZH:SHA256",
+        "/IGNORE:4042",
+        "/DUNICODE",
+        "/D_UNICODE",
+    ]
+
+    default_link_flags_list = [
+        "/nologo",
+        "/IGNORE:4042",
+        "/PROFILE",
+        "/GUARD:CF",
     ]
 
     cpp_link_nodeps_dynamic_library_action = action_config(
@@ -155,7 +169,6 @@ def _impl(ctx):
             "output_execpath_flags",
             "input_param_flags",
             "user_link_flags",
-            "linker_subsystem_flag",
             "linker_param_file",
             "msvc_env",
             "no_stripping",
@@ -180,9 +193,9 @@ def _impl(ctx):
     assemble_action = action_config(
         action_name = ACTION_NAMES.assemble,
         implies = [
+            "nologo",
             "compiler_input_flags",
             "compiler_output_flags",
-            "nologo",
             "msvc_env",
         ],
         tools = [tool(path = ctx.attr.msvc_ml_path)],
@@ -191,9 +204,9 @@ def _impl(ctx):
     preprocess_assemble_action = action_config(
         action_name = ACTION_NAMES.preprocess_assemble,
         implies = [
+            "nologo",
             "compiler_input_flags",
             "compiler_output_flags",
-            "nologo",
             "msvc_env",
         ],
         tools = [tool(path = ctx.attr.msvc_ml_path)],
@@ -202,9 +215,9 @@ def _impl(ctx):
     c_compile_action = action_config(
         action_name = ACTION_NAMES.c_compile,
         implies = [
+            "nologo",
             "compiler_input_flags",
             "compiler_output_flags",
-            "nologo",
             "msvc_env",
             "user_compile_flags",
         ],
@@ -214,10 +227,10 @@ def _impl(ctx):
     linkstamp_compile_action = action_config(
         action_name = ACTION_NAMES.linkstamp_compile,
         implies = [
+            "nologo",
             "compiler_input_flags",
             "compiler_output_flags",
             "default_compile_flags",
-            "nologo",
             "msvc_env",
             "user_compile_flags",
             "unfiltered_compile_flags",
@@ -228,9 +241,9 @@ def _impl(ctx):
     cpp_compile_action = action_config(
         action_name = ACTION_NAMES.cpp_compile,
         implies = [
+            "nologo",
             "compiler_input_flags",
             "compiler_output_flags",
-            "nologo",
             "msvc_env",
             "user_compile_flags",
         ],
@@ -245,7 +258,6 @@ def _impl(ctx):
             "output_execpath_flags",
             "input_param_flags",
             "user_link_flags",
-            "linker_subsystem_flag",
             "linker_param_file",
             "msvc_env",
             "no_stripping",
@@ -262,7 +274,6 @@ def _impl(ctx):
             "output_execpath_flags",
             "input_param_flags",
             "user_link_flags",
-            "linker_subsystem_flag",
             "linker_param_file",
             "msvc_env",
             "no_stripping",
@@ -283,9 +294,9 @@ def _impl(ctx):
             ),
         ],
         implies = [
+            "nologo",
             "compiler_input_flags",
             "compiler_output_flags",
-            "nologo",
             "msvc_env",
             "user_compile_flags",
         ],
@@ -311,9 +322,9 @@ def _impl(ctx):
             ),
         ],
         implies = [
+            "nologo",
             "compiler_input_flags",
             "compiler_output_flags",
-            "nologo",
             "msvc_env",
             "user_compile_flags",
         ],
@@ -327,9 +338,9 @@ def _impl(ctx):
             ),
         ],
         implies = [
+            "nologo",
             "compiler_input_flags",
             "compiler_output_flags",
-            "nologo",
             "msvc_env",
             "user_compile_flags",
         ],
@@ -622,7 +633,7 @@ def _impl(ctx):
             flag_set(
                 actions = all_link_actions,
                 flag_groups = [
-                    flag_group(flags = ctx.attr.default_link_flags),
+                    flag_group(flags = default_link_flags_list + ctx.attr.default_link_flags),
                 ] if ctx.attr.default_link_flags else [],
             ),
         ],
@@ -878,6 +889,7 @@ def _impl(ctx):
 
     linker_param_file_feature = feature(
         name = "linker_param_file",
+        enabled = True,
         flag_sets = [
             flag_set(
                 actions = all_link_actions +
@@ -1039,12 +1051,22 @@ def _impl(ctx):
         implies = ["copy_dynamic_libraries_to_binary"],
     )
 
-    linker_subsystem_flag_feature = feature(
-        name = "linker_subsystem_flag",
+    linker_subsystem_console_feature = feature(
+        name = "linker_subsystem_console",
         flag_sets = [
             flag_set(
                 actions = all_link_actions,
                 flag_groups = [flag_group(flags = ["/SUBSYSTEM:CONSOLE"])],
+            ),
+        ],
+    )
+
+    linker_subsystem_windows_feature = feature(
+        name = "linker_subsystem_windows",
+        flag_sets = [
+            flag_set(
+                actions = all_link_actions,
+                flag_groups = [flag_group(flags = ["/SUBSYSTEM:WINDOWS"])],
             ),
         ],
     )
@@ -1283,7 +1305,8 @@ def _impl(ctx):
         output_execpath_flags_feature,
         archiver_flags_feature,
         input_param_flags_feature,
-        linker_subsystem_flag_feature,
+        linker_subsystem_console_feature,
+        linker_subsystem_windows_feature,
         user_link_flags_feature,
         default_link_flags_feature,
         linker_param_file_feature,
