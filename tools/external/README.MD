@@ -1,0 +1,1 @@
+External deps use cc_library in order to avoid unnecessary warnings being enabled for external code.

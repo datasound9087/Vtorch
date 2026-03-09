@@ -138,7 +138,6 @@ def _impl(ctx):
         # Set source and execution character sets to UTF-8
         "/utf-8",
         # Enable all warnings
-        "/Wall",
         "/wd4351",
         "/wd4291",
         "/wd4250",
@@ -147,15 +146,16 @@ def _impl(ctx):
         "/Zc:__cplusplus",
         "/Zc:__STDC__",
         "/Zc:wchar_t",
-        "/ZH:SHA256",
-        "/IGNORE:4042",
         "/DUNICODE",
         "/D_UNICODE",
+        "/DWIN32_LEAN_AND_MEAN",
+        "/Qspectre",
     ]
 
     default_link_flags_list = [
         "/nologo",
         "/IGNORE:4042",
+        "/IGNORE:4044",
         "/PROFILE",
         "/GUARD:CF",
     ]
@@ -386,7 +386,6 @@ def _impl(ctx):
 
     all_warnings_feature = feature(
         name = "all_warnings",
-        enabled = True,
         flag_sets = [
             flag_set(
                 actions = [
@@ -411,7 +410,7 @@ def _impl(ctx):
                             "-D__DATE__=\"redacted\"",
                             "-D__TIMESTAMP__=\"redacted\"",
                             "-D__TIME__=\"redacted\"",
-                        ] + (["-Wno-builtin-macro-redefined"] if ctx.attr.compiler == "clang-cl" else []),
+                        ],
                     ),
                 ],
             ),
@@ -1005,24 +1004,16 @@ def _impl(ctx):
         name = "external_include_paths",
         flag_sets = [
             flag_set(
-                actions = [
-                    ACTION_NAMES.preprocess_assemble,
-                    ACTION_NAMES.linkstamp_compile,
-                    ACTION_NAMES.c_compile,
-                    ACTION_NAMES.cpp_compile,
-                    ACTION_NAMES.cpp_header_parsing,
-                    ACTION_NAMES.cpp_module_compile,
-                    ACTION_NAMES.cpp_module_deps_scanning,
-                    ACTION_NAMES.cpp20_module_compile,
-                    ACTION_NAMES.clif_match,
-                    ACTION_NAMES.objc_compile,
-                    ACTION_NAMES.objcpp_compile,
-                ],
+                actions = all_compile_actions,
                 flag_groups = [
                     flag_group(
-                        flags = ["/external:I%{external_include_paths}"],
-                        iterate_over = "external_include_paths",
-                        expand_if_available = "external_include_paths",
+                        flags = [
+                            "/external:W2",
+                            "/external:Iexternal",
+                            "/external:I{}/external".format(ctx.bin_dir.path),
+                            "/external:I{}/_virtual_includes".format(ctx.bin_dir.path),
+                            "/external:anglebrackets",
+                        ],
                     ),
                 ],
             ),
@@ -1051,22 +1042,22 @@ def _impl(ctx):
         implies = ["copy_dynamic_libraries_to_binary"],
     )
 
-    linker_subsystem_console_feature = feature(
-        name = "linker_subsystem_console",
+    subsystem_console_feature = feature(
+        name = "subsystem_console",
         flag_sets = [
             flag_set(
                 actions = all_link_actions,
-                flag_groups = [flag_group(flags = ["/SUBSYSTEM:CONSOLE"])],
+                flag_groups = [flag_group(flags = ["/SUBSYSTEM:CONSOLE,10"])],
             ),
         ],
     )
 
-    linker_subsystem_windows_feature = feature(
-        name = "linker_subsystem_windows",
+    subsystem_windows_feature = feature(
+        name = "subsystem_windows",
         flag_sets = [
             flag_set(
                 actions = all_link_actions,
-                flag_groups = [flag_group(flags = ["/SUBSYSTEM:WINDOWS"])],
+                flag_groups = [flag_group(flags = ["/SUBSYSTEM:WINDOWS,10"])],
             ),
         ],
     )
@@ -1305,8 +1296,8 @@ def _impl(ctx):
         output_execpath_flags_feature,
         archiver_flags_feature,
         input_param_flags_feature,
-        linker_subsystem_console_feature,
-        linker_subsystem_windows_feature,
+        subsystem_console_feature,
+        subsystem_windows_feature,
         user_link_flags_feature,
         default_link_flags_feature,
         linker_param_file_feature,

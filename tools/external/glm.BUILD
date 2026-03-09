@@ -1,6 +1,6 @@
-load("@vtorch//tools/bazel:cc.bzl", "my_library")
+load("@rules_cc//cc:cc_library.bzl", "cc_library")
 
-my_library(
+cc_library(
     name = "glm",
     hdrs = glob([
         "glm/**/*.hpp",
