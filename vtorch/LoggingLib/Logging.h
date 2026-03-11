@@ -5,4 +5,5 @@ namespace logging
     void Init();
     void Shutdown();
 } // namespace logging
+
 // Wrap macros
