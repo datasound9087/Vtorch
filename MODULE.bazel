@@ -56,9 +56,17 @@ http_archive(
 http_archive(
     name = "spdlog",
     build_file = "//tools/external:spdlog.BUILD",
-    sha256 = "",
+    sha256 = "b11912a82d149792fef33fabd0503b13d54aeac25c1464755461d4108ea71fc2",
     strip_prefix = "spdlog-1.17.0",
     url = "https://github.com/gabime/spdlog/archive/refs/tags/v1.17.0.zip",
+)
+
+http_archive(
+    name = "vma",
+    build_file = "//tools/external:vma.BUILD",
+    sha256 = "81755d8fcb411b97292c6682e828501315db319374c7c34ba6e1226452c6c392",
+    strip_prefix = "VulkanMemoryAllocator-3.3.0",
+    url = "https://github.com/GPUOpen-LibrariesAndSDKs/VulkanMemoryAllocator/archive/refs/tags/v3.3.0.zip",
 )
 
 register_toolchains(

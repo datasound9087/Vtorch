@@ -4,10 +4,11 @@ my_binary(
     name = "VTorch",
     srcs = glob(["*.cpp"]),
     deps = [
-        # "@glfw",
-        # "@glm",
-        # "@gsl",
-        # "@spdlog",
-        # "@vk_sdk//:vulkan",
+        "@glfw",
+        "@glm",
+        "@gsl",
+        "@spdlog",
+        "@vk_sdk//:vulkan",
+        "@vma",
     ],
 )
