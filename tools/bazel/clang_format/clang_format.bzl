@@ -20,9 +20,6 @@ def _format_file(ctx, package, file):
     outfile = ctx.actions.declare_file(filename + ".clang_format.validation")
     script_file = ctx.actions.declare_file(filename + ".clang_format.bat")
 
-    # Retrieve clang format style file path
-    style_file = ctx.file._clang_format_file.path
-
     # Create args
     args = ctx.actions.args()
     args.add("--dry-run")
