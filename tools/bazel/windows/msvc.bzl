@@ -18,6 +18,7 @@ load(
 )
 load("@rules_cc//cc/common:cc_common.bzl", "cc_common")
 load("@rules_cc//cc/toolchains:cc_toolchain_config_info.bzl", "CcToolchainConfigInfo")
+load("//tools/bazel:source_roots.bzl", "SOURCE_ROOTS")
 
 all_compile_actions = [
     ACTION_NAMES.c_compile,
@@ -988,6 +989,21 @@ def _impl(ctx):
         ],
     )
 
+    repo_include_paths_feature = feature(
+        name = "repo_include_paths",
+        enabled = True,
+        flag_sets = [
+            flag_set(
+                actions = all_compile_actions,
+                flag_groups = [
+                    flag_group(
+                        flags = ["/I{}".format(root) for root in SOURCE_ROOTS],
+                    ),
+                ],
+            ),
+        ],
+    )
+
     external_include_paths_feature = feature(
         name = "external_include_paths",
         flag_sets = [
@@ -1259,6 +1275,7 @@ def _impl(ctx):
         msvc_compile_env_feature,
         msvc_link_env_feature,
         include_paths_feature,
+        repo_include_paths_feature,
         external_include_paths_feature,
         preprocessor_defines_feature,
         parse_showincludes_feature,

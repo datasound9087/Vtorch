@@ -4,6 +4,9 @@
 
 // #include <glm/glm.hpp>
 // #include <gsl/gsl>
-#include <iostream>
 
-int main() { return 0; }
+#include <cstdlib>
+
+#include "LoggingLib/Logging.h"
+
+int main() { return EXIT_SUCCESS; }
