@@ -6,5 +6,6 @@ my_binary(
     deps = [
         "//vtorch/LoggingLib",
         "//vtorch/VulkanLib",
+        "@gsl",
     ],
 )

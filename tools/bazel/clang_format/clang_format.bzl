@@ -12,28 +12,43 @@ def _get_files(ctx, attr):
     return files
 
 def _format_file(ctx, package, file):
-    # Declare output file
-    outfile = ctx.actions.declare_file("{name}.clang-format_validation".format(
+    filename = "{name}".format(
         name = file.short_path.removeprefix(package + "/"),
-    ))
+    )
+
+    # Declare output file
+    outfile = ctx.actions.declare_file(filename + ".clang_format.validation")
+    script_file = ctx.actions.declare_file(filename + ".clang_format.bat")
 
     # Retrieve clang format style file path
-    style_file = ctx.attr._clang_format_file.files.to_list()[0].path
+    style_file = ctx.file._clang_format_file.path
 
     # Create args
     args = ctx.actions.args()
-    args.add(ctx.attr._executable)
-    args.add("--Werror")
     args.add("--dry-run")
+    args.add("--Werror")
     args.add(file.path)
-    args.add("--style=file:{}".format(style_file))
-    args.add(outfile.path)
+    args.use_param_file("@%s", use_always = True)
 
-    # Run clang-format
+    content_template = """
+@echo off
+"{clang_format}" %* > "{output_file}"
+    """
+    content = content_template.format(
+        clang_format = ctx.attr._executable,
+        output_file = outfile.path,
+    )
+
+    ctx.actions.write(
+        output = script_file,
+        content = content,
+        is_executable = True,
+    )
+
     ctx.actions.run(
         inputs = [file],
         outputs = [outfile],
-        executable = ctx.executable._wrapper,
+        executable = script_file,
         arguments = [args],
         mnemonic = "ClangFormat",
     )
@@ -67,16 +82,11 @@ clang_format_aspect = aspect(
     required_providers = [CcInfo],
     attrs = {
         "_clang_format_file": attr.label(
-            default = Label("//tools/bazel/clang_format:clang_format_file"),
+            default = Label("//:clang_format_file"),
             allow_single_file = True,
         ),
         "_executable": attr.string(
             default = "C:/Users/Sam/dev/clang-format.exe",
-        ),
-        "_wrapper": attr.label(
-            default = Label("//tools/bazel/clang_format:wrapper"),
-            executable = True,  # Must be runnable by ctx.actions.run
-            cfg = "exec",  # Target is built for execution platform
         ),
     },
 )

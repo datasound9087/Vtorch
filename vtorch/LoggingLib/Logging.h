@@ -1,5 +1,7 @@
 #include <spdlog/spdlog.h>
 
 namespace logging {
-void InitConsole();
-}
+void Init();
+void Shutdown();
+} // namespace logging
+// Wrap macros
