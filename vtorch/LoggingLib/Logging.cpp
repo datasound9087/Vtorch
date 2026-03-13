@@ -9,6 +9,8 @@ namespace logging
         spdlog::set_default_logger(logger);
         spdlog::set_level(spdlog::level::info);
         spdlog::set_pattern("[%Y-%m-%dT%H:%M:%S] [%^%l%$] %v");
+
+        LOG_ALL("VTorchTestApp");
     }
 
     void Shutdown() { spdlog::shutdown(); }
