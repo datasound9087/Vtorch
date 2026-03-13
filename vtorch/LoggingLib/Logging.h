@@ -4,6 +4,9 @@ namespace logging
 {
     void Init();
     void Shutdown();
+
+    [[noreturn]] void ThrowSystemError(const std::string &message,
+                                       const int error);
 } // namespace logging
 
 // Wrap macros

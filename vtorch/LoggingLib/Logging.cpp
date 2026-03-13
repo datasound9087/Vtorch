@@ -1,4 +1,6 @@
 #include "Logging.h"
+#include <exception>
+#include <format>
 #include <spdlog/sinks/stdout_color_sinks.h>
 
 namespace logging
@@ -15,4 +17,9 @@ namespace logging
 
     void Shutdown() { spdlog::shutdown(); }
 
+    void ThrowSystemError(const std::string &message, const int error)
+    {
+        throw std::system_error(std::error_code(error, std::generic_category()),
+                                message);
+    }
 } // namespace logging

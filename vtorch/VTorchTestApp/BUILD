@@ -4,8 +4,8 @@ my_binary(
     name = "VTorchTestApp",
     srcs = glob(["*.cpp"]),
     deps = [
+        "//vtorch/ApplicationLib",
         "//vtorch/LoggingLib",
-        "//vtorch/VulkanLib",
         "@gsl",
     ],
 )

@@ -144,6 +144,7 @@ def _impl(ctx):
         "/wd4250",
         "/wd4996",
         "/wd4514",
+        "/wd4820",
         "/Zc:__cplusplus",
         "/Zc:__STDC__",
         "/Zc:wchar_t",
@@ -157,6 +158,12 @@ def _impl(ctx):
         "/IGNORE:4042",
         "/PROFILE",
         "/GUARD:CF",
+        # Windows libs to link against
+        "kernel32.lib",
+        "user32.lib",
+        "shlwapi.lib",
+        "gdi32.lib",
+        "shell32.lib",
     ]
 
     cpp_link_nodeps_dynamic_library_action = action_config(
