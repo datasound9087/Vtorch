@@ -1,3 +1,6 @@
+#pragma once
+#include "RendererLib/IRenderer.h"
+#include <memory>
 #include <string>
 
 struct ApplicationArgs
@@ -25,4 +28,6 @@ class Application
     GLFWwindow *m_window{nullptr};
 
     bool m_exit{false};
+
+    std::unique_ptr<IRenderer> m_renderer;
 };

@@ -11,7 +11,7 @@
             "program": "${workspaceFolder}/bazel-out/x64_windows-fastbuild/bin/vtorch/VTorchTestApp/VTorchTestApp.exe",
             "args": [],
             "stopAtEntry": false,
-            "cwd": "${fileDirname}",
+            "cwd": "${workspaceFolder}",
             "environment": [],
             "console": "externalTerminal"
         }

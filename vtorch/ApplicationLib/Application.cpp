@@ -1,6 +1,7 @@
 #include "Application.h"
 
 #include "LoggingLib/Logging.h"
+#include "VulkanLib/VulkanRenderer.h"
 #include <GLFW/glfw3.h>
 #include <gsl/gsl>
 #include <stdexcept>
@@ -26,6 +27,10 @@ void Application::Run()
         logging::ThrowSystemError("Failed to create window",
                                   glfwGetError(nullptr));
     }
+
+    LOG_ALL("Initialising renderer...");
+    m_renderer = std::make_unique<VulkanRenderer>();
+    LOG_ALL("Renderer initialised");
 
     RunGameLoop();
 }

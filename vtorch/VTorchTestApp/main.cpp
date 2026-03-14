@@ -28,5 +28,7 @@ int main()
     {
         LOG_ERROR("Unknown exception occurred :(");
     }
+
+    LOG_ALL("Shutdown");
     return EXIT_SUCCESS;
 }

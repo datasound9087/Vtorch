@@ -6,8 +6,12 @@ my_library(
     name = "ApplicationLib",
     srcs = glob(["*.cpp"]),
     hdrs = glob(["*.h"]),
-    deps = [
+    implementation_deps = [
         "//vtorch/LoggingLib",
+        "//vtorch/VulkanLib",
+    ],
+    deps = [
+        "//vtorch/RendererLib",
         "@glfw",
         "@gsl",
     ],

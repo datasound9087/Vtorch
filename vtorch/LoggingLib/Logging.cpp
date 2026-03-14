@@ -9,7 +9,7 @@ namespace logging
     {
         static auto logger = spdlog::stdout_color_mt("logger");
         spdlog::set_default_logger(logger);
-        spdlog::set_level(spdlog::level::info);
+        spdlog::set_level(spdlog::level::debug);
         spdlog::set_pattern("[%Y-%m-%dT%H:%M:%S] [%^%l%$] %v");
 
         LOG_ALL("VTorchTestApp");
