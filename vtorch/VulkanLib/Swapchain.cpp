@@ -137,8 +137,6 @@ const vk::Format &Swapchain::GetFormat() const { return m_format; }
 FrameInfo Swapchain::BeginFrame()
 {
     auto &cmdBuffer = m_commandBuffers[m_frameIndex];
-    auto &image = m_swapChainImages[m_frameIndex];
-    auto &imageView = m_swapChainImageViews[m_frameIndex];
     auto &fence = m_inFlightFences[m_frameIndex];
     auto &presentCompleteSemaphore = m_presentCompleteSemaphores[m_frameIndex];
 
@@ -154,6 +152,9 @@ FrameInfo Swapchain::BeginFrame()
 
     auto [result, imageIndex] = m_swapChain.acquireNextImage(
         UINT64_MAX, *presentCompleteSemaphore, nullptr);
+    m_imageIndex = imageIndex;
+    auto &image = m_swapChainImages[m_imageIndex];
+    auto &imageView = m_swapChainImageViews[m_imageIndex];
 
     cmdBuffer.reset();
     cmdBuffer.begin({});
@@ -189,10 +190,10 @@ FrameInfo Swapchain::BeginFrame()
 void Swapchain::EndFrame()
 {
     auto &cmdBuffer = m_commandBuffers[m_frameIndex];
-    auto &image = m_swapChainImages[m_frameIndex];
+    auto &image = m_swapChainImages[m_imageIndex];
     auto &fence = m_inFlightFences[m_frameIndex];
     auto &presentCompleteSemaphore = m_presentCompleteSemaphores[m_frameIndex];
-    auto &renderFinishedSemaphore = m_renderFinishedSemaphores[m_frameIndex];
+    auto &renderFinishedSemaphore = m_renderFinishedSemaphores[m_imageIndex];
 
     cmdBuffer.endRendering();
 
@@ -223,7 +224,7 @@ void Swapchain::EndFrame()
                                                 &(*renderFinishedSemaphore),
                                             .swapchainCount = 1,
                                             .pSwapchains = &(*m_swapChain),
-                                            .pImageIndices = &m_frameIndex};
+                                            .pImageIndices = &m_imageIndex};
 
     const auto presentResult = queue.presentKHR(presentInfoKHR);
     if (presentResult == vk::Result::eSuboptimalKHR)

@@ -29,6 +29,7 @@ class Swapchain
     vk::raii::SwapchainKHR m_swapChain{nullptr};
     std::vector<vk::Image> m_swapChainImages;
     std::vector<vk::raii::ImageView> m_swapChainImageViews;
+    uint32_t m_imageIndex{};
 
     // Resources for each swapchain frame
     vk::raii::CommandPool m_commandPool{nullptr};
