@@ -12,6 +12,7 @@ class VulkanRenderer : public IRenderer
     VulkanRenderer(GLFWwindow *window);
     ~VulkanRenderer();
     void Init() override;
+    void RenderFrame() override;
 
    private:
     Context m_context;

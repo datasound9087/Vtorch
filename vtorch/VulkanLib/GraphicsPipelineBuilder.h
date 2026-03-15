@@ -1,3 +1,4 @@
+#pragma once
 #include "Context.h"
 #include <filesystem>
 #include <optional>

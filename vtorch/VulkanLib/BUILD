@@ -16,6 +16,7 @@ my_library(
     deps = [
         "//vtorch/RendererLib",
         "@glfw",
+        "@gsl",
         "@vk_sdk//:vulkan",
         "@vma",
     ],

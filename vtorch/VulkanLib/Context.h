@@ -18,6 +18,8 @@ class Context
 
     const SwapchainInfo GetSwapchainInfo() const;
     const vk::raii::Device &GetDevice() const;
+    uint32_t GraphicsIndex() const;
+    const vk::raii::Queue &GraphicsQueue() const;
 
    private:
     vk::raii::Context m_context;
@@ -26,6 +28,7 @@ class Context
     vk::raii::SurfaceKHR m_surface{nullptr};
 
     vk::raii::PhysicalDevice m_physicalDevice{nullptr};
+    uint32_t m_graphicsIndex{};
     vk::raii::Device m_device{nullptr};
 
     vk::raii::Queue m_graphicsQueue{nullptr};

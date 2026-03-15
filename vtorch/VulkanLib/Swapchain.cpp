@@ -1,9 +1,10 @@
 #include "Swapchain.h"
+#include "ImageFormat.h"
 #include "LoggingLib/Logging.h"
 #include <algorithm>
 #include <ranges>
 
-Swapchain::Swapchain(Context &context, GLFWwindow *window)
+Swapchain::Swapchain(Context &context, GLFWwindow *window) : m_context(context)
 {
     LOG_DEBUG("Creating swapchain");
     const auto swapchainInfo = context.GetSwapchainInfo();
@@ -40,15 +41,14 @@ Swapchain::Swapchain(Context &context, GLFWwindow *window)
     int height{};
     glfwGetFramebufferSize(window, &width, &height);
 
-    const vk::Extent2D swapExtent{
-        .width = std::clamp<uint32_t>(
-            static_cast<uint32_t>(width),
-            swapchainInfo.capabilities.minImageExtent.width,
-            swapchainInfo.capabilities.maxImageExtent.width),
-        .height = std::clamp<uint32_t>(
-            static_cast<uint32_t>(height),
-            swapchainInfo.capabilities.minImageExtent.height,
-            swapchainInfo.capabilities.maxImageExtent.height)};
+    m_swapExtent = {.width = std::clamp<uint32_t>(
+                        static_cast<uint32_t>(width),
+                        swapchainInfo.capabilities.minImageExtent.width,
+                        swapchainInfo.capabilities.maxImageExtent.width),
+                    .height = std::clamp<uint32_t>(
+                        static_cast<uint32_t>(height),
+                        swapchainInfo.capabilities.minImageExtent.height,
+                        swapchainInfo.capabilities.maxImageExtent.height)};
 
     const uint32_t imageCount =
         // When maxImageCount is zero, there is no max image count
@@ -65,7 +65,7 @@ Swapchain::Swapchain(Context &context, GLFWwindow *window)
         .minImageCount = imageCount,
         .imageFormat = formatIt->format,
         .imageColorSpace = formatIt->colorSpace,
-        .imageExtent = swapExtent,
+        .imageExtent = m_swapExtent,
         .imageArrayLayers = 1,
         // Currently rendering directly to the swapchain. May be
         // vk::ImageUsageFlagBits::eTransferDst at some point
@@ -103,6 +103,133 @@ Swapchain::Swapchain(Context &context, GLFWwindow *window)
         m_swapChainImageViews.emplace_back(context.GetDevice(),
                                            imageViewCreateInfo);
     }
+
+    // Init render resources for each frame
+    vk::CommandPoolCreateInfo poolInfo{
+        .flags = vk::CommandPoolCreateFlagBits::eResetCommandBuffer,
+        .queueFamilyIndex = context.GraphicsIndex()};
+    m_commandPool = vk::raii::CommandPool(context.GetDevice(), poolInfo);
+
+    vk::CommandBufferAllocateInfo allocInfo{
+        .commandPool = m_commandPool,
+        .level = vk::CommandBufferLevel::ePrimary,
+        .commandBufferCount = MaxFramesInFlight};
+    m_commandBuffers = vk::raii::CommandBuffers(context.GetDevice(), allocInfo);
+
+    for (size_t i = 0; i < m_swapChainImages.size(); i++)
+    {
+        m_renderFinishedSemaphores.emplace_back(context.GetDevice(),
+                                                vk::SemaphoreCreateInfo());
+    }
+
+    for (size_t i = 0; i < MaxFramesInFlight; i++)
+    {
+        m_presentCompleteSemaphores.emplace_back(context.GetDevice(),
+                                                 vk::SemaphoreCreateInfo());
+        m_inFlightFences.emplace_back(
+            context.GetDevice(),
+            vk::FenceCreateInfo{.flags = vk::FenceCreateFlagBits::eSignaled});
+    }
 }
 
 const vk::Format &Swapchain::GetFormat() const { return m_format; }
+
+FrameInfo Swapchain::BeginFrame()
+{
+    auto &cmdBuffer = m_commandBuffers[m_frameIndex];
+    auto &image = m_swapChainImages[m_frameIndex];
+    auto &imageView = m_swapChainImageViews[m_frameIndex];
+    auto &fence = m_inFlightFences[m_frameIndex];
+    auto &presentCompleteSemaphore = m_presentCompleteSemaphores[m_frameIndex];
+
+    const auto &device = m_context.GetDevice();
+    const auto fenceResult =
+        m_context.GetDevice().waitForFences(*fence, vk::True, UINT64_MAX);
+
+    if (fenceResult != vk::Result::eSuccess)
+    {
+        throw std::runtime_error("failed to wait for fence!");
+    }
+    device.resetFences(*fence);
+
+    auto [result, imageIndex] = m_swapChain.acquireNextImage(
+        UINT64_MAX, *presentCompleteSemaphore, nullptr);
+
+    cmdBuffer.reset();
+    cmdBuffer.begin({});
+
+    // Transition swapchain image to useable format
+    renderer::vulkan::TransitionImageLayout(
+        cmdBuffer, image, vk::ImageLayout::eUndefined,
+        vk::ImageLayout::eColorAttachmentOptimal, {},
+        vk::AccessFlagBits2::eColorAttachmentWrite,
+        vk::PipelineStageFlagBits2::eColorAttachmentOutput,
+        vk::PipelineStageFlagBits2::eColorAttachmentOutput);
+
+    vk::ClearValue clearColor = vk::ClearColorValue(0.0f, 0.0f, 0.0f, 1.0f);
+
+    vk::RenderingAttachmentInfo attachmentInfo = {
+        .imageView = imageView,
+        .imageLayout = vk::ImageLayout::eColorAttachmentOptimal,
+        .loadOp = vk::AttachmentLoadOp::eClear,
+        .storeOp = vk::AttachmentStoreOp::eStore,
+        .clearValue = clearColor};
+
+    vk::RenderingInfo renderingInfo = {
+        .renderArea = {.offset = {0, 0}, .extent = m_swapExtent},
+        .layerCount = 1,
+        .colorAttachmentCount = 1,
+        .pColorAttachments = &attachmentInfo};
+
+    cmdBuffer.beginRendering(renderingInfo);
+
+    return FrameInfo{.commandBuffer = &cmdBuffer};
+}
+
+void Swapchain::EndFrame()
+{
+    auto &cmdBuffer = m_commandBuffers[m_frameIndex];
+    auto &image = m_swapChainImages[m_frameIndex];
+    auto &fence = m_inFlightFences[m_frameIndex];
+    auto &presentCompleteSemaphore = m_presentCompleteSemaphores[m_frameIndex];
+    auto &renderFinishedSemaphore = m_renderFinishedSemaphores[m_frameIndex];
+
+    cmdBuffer.endRendering();
+
+    renderer::vulkan::TransitionImageLayout(
+        cmdBuffer, image, vk::ImageLayout::eColorAttachmentOptimal,
+        vk::ImageLayout::ePresentSrcKHR,
+        vk::AccessFlagBits2::eColorAttachmentWrite, {},
+        vk::PipelineStageFlagBits2::eColorAttachmentOutput,
+        vk::PipelineStageFlagBits2::eBottomOfPipe);
+    cmdBuffer.end();
+
+    vk::PipelineStageFlags waitDestinationStageMask(
+        vk::PipelineStageFlagBits::eColorAttachmentOutput);
+    const vk::SubmitInfo submitInfo{
+        .waitSemaphoreCount = 1,
+        .pWaitSemaphores = &(*presentCompleteSemaphore),
+        .pWaitDstStageMask = &waitDestinationStageMask,
+        .commandBufferCount = 1,
+        .pCommandBuffers = &(*cmdBuffer),
+        .signalSemaphoreCount = 1,
+        .pSignalSemaphores = &(*renderFinishedSemaphore)};
+
+    const auto &queue = m_context.GraphicsQueue();
+    queue.submit(submitInfo, *fence);
+
+    const vk::PresentInfoKHR presentInfoKHR{.waitSemaphoreCount = 1,
+                                            .pWaitSemaphores =
+                                                &(*renderFinishedSemaphore),
+                                            .swapchainCount = 1,
+                                            .pSwapchains = &(*m_swapChain),
+                                            .pImageIndices = &m_frameIndex};
+
+    const auto presentResult = queue.presentKHR(presentInfoKHR);
+    if (presentResult == vk::Result::eSuboptimalKHR)
+    {
+        LOG_WARN("Suboptimal KHR returned, swapchain out of date");
+    }
+
+    m_frameIndex = (m_frameIndex + 1) % MaxFramesInFlight;
+}

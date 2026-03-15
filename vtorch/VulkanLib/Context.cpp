@@ -210,11 +210,11 @@ Context::Context(GLFWwindow *window)
             return (qfp.queueFlags & vk::QueueFlagBits::eGraphics) !=
                    static_cast<vk::QueueFlags>(0);
         });
-    const auto graphicsIndex = static_cast<uint32_t>(std::distance(
+    m_graphicsIndex = static_cast<uint32_t>(std::distance(
         queueFamilyProperties.begin(), graphicsQueueFamilyProperty));
     // If the found physical device does not support presentation from its
     // graphics queue, fail
-    if (!m_physicalDevice.getSurfaceSupportKHR(graphicsIndex, *m_surface))
+    if (!m_physicalDevice.getSurfaceSupportKHR(m_graphicsIndex, *m_surface))
     {
         throw std::runtime_error(
             "Graphics queue does not support presentation");
@@ -222,7 +222,7 @@ Context::Context(GLFWwindow *window)
 
     const float queuePriority = 0.5f;
     std::vector<vk::DeviceQueueCreateInfo> queueCreateInfos = {
-        {.queueFamilyIndex = graphicsIndex,
+        {.queueFamilyIndex = m_graphicsIndex,
          .queueCount = 1,
          .pQueuePriorities = &queuePriority}};
 
@@ -233,7 +233,7 @@ Context::Context(GLFWwindow *window)
         featureChain = {// vk::PhysicalDeviceFeatures2
                         {},
                         // Enable dynamic rendering from Vulkan 1.3
-                        {.dynamicRendering = true},
+                        {.synchronization2 = true, .dynamicRendering = true},
                         // Enable extended dynamic state
                         {.extendedDynamicState = true}};
 
@@ -247,7 +247,7 @@ Context::Context(GLFWwindow *window)
 
     m_device = vk::raii::Device(m_physicalDevice, deviceCreateInfo);
 
-    m_graphicsQueue = vk::raii::Queue(m_device, graphicsIndex, 0);
+    m_graphicsQueue = vk::raii::Queue(m_device, m_graphicsIndex, 0);
 }
 
 const SwapchainInfo Context::GetSwapchainInfo() const
@@ -260,3 +260,10 @@ const SwapchainInfo Context::GetSwapchainInfo() const
 }
 
 const vk::raii::Device &Context::GetDevice() const { return m_device; }
+
+uint32_t Context::GraphicsIndex() const { return m_graphicsIndex; }
+
+const vk::raii::Queue &Context::GraphicsQueue() const
+{
+    return m_graphicsQueue;
+}

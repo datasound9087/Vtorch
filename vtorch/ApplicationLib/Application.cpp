@@ -41,5 +41,6 @@ void Application::RunGameLoop()
     {
         m_exit = glfwWindowShouldClose(m_window) == GLFW_TRUE;
         glfwPollEvents();
+        m_renderer->RenderFrame();
     }
 }

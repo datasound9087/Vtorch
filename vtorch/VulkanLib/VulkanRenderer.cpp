@@ -1,5 +1,6 @@
 #include "VulkanRenderer.h"
 #include "LoggingLib/Logging.h"
+#include <gsl/gsl>
 
 namespace
 {
@@ -54,3 +55,9 @@ VulkanRenderer::VulkanRenderer(GLFWwindow *window)
 VulkanRenderer::~VulkanRenderer() { m_context.GetDevice().waitIdle(); }
 
 void VulkanRenderer::Init() {}
+
+void VulkanRenderer::RenderFrame()
+{
+    auto frameInfo = m_swapchain.BeginFrame();
+    const auto endFrame = gsl::finally([&]() { m_swapchain.EndFrame(); });
+}
