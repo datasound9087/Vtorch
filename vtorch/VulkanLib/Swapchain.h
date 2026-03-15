@@ -29,7 +29,6 @@ class Swapchain
     vk::raii::SwapchainKHR m_swapChain{nullptr};
     std::vector<vk::Image> m_swapChainImages;
     std::vector<vk::raii::ImageView> m_swapChainImageViews;
-    uint32_t m_imageIndex{};
 
     // Resources for each swapchain frame
     vk::raii::CommandPool m_commandPool{nullptr};
@@ -37,5 +36,12 @@ class Swapchain
     std::vector<vk::raii::Semaphore> m_presentCompleteSemaphores;
     std::vector<vk::raii::Semaphore> m_renderFinishedSemaphores;
     std::vector<vk::raii::Fence> m_inFlightFences;
+
+    // The image currently being rendered to (m_swapChainImages and
+    // m_swapChainImageViews)
+    uint32_t m_imageIndex{};
+    // The current frame being rendered to. NOTE: This is different to
+    // m_imageIndex, as the image acquired from the swapchain for the frame may
+    // be different to this.
     uint32_t m_frameIndex{};
 };

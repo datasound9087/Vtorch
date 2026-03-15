@@ -60,7 +60,7 @@ Swapchain::Swapchain(Context &context, GLFWwindow *window) : m_context(context)
                                    swapchainInfo.capabilities.minImageCount,
                                    swapchainInfo.capabilities.maxImageCount);
 
-    vk::SwapchainCreateInfoKHR swapChainCreateInfo{
+    const vk::SwapchainCreateInfoKHR swapChainCreateInfo{
         .surface = swapchainInfo.surface,
         .minImageCount = imageCount,
         .imageFormat = formatIt->format,
@@ -105,12 +105,12 @@ Swapchain::Swapchain(Context &context, GLFWwindow *window) : m_context(context)
     }
 
     // Init render resources for each frame
-    vk::CommandPoolCreateInfo poolInfo{
+    const vk::CommandPoolCreateInfo poolInfo{
         .flags = vk::CommandPoolCreateFlagBits::eResetCommandBuffer,
         .queueFamilyIndex = context.GraphicsIndex()};
     m_commandPool = vk::raii::CommandPool(context.GetDevice(), poolInfo);
 
-    vk::CommandBufferAllocateInfo allocInfo{
+    const vk::CommandBufferAllocateInfo allocInfo{
         .commandPool = m_commandPool,
         .level = vk::CommandBufferLevel::ePrimary,
         .commandBufferCount = MaxFramesInFlight};
@@ -136,13 +136,15 @@ const vk::Format &Swapchain::GetFormat() const { return m_format; }
 
 FrameInfo Swapchain::BeginFrame()
 {
-    auto &cmdBuffer = m_commandBuffers[m_frameIndex];
-    auto &fence = m_inFlightFences[m_frameIndex];
-    auto &presentCompleteSemaphore = m_presentCompleteSemaphores[m_frameIndex];
+    const auto &fence = m_inFlightFences[m_frameIndex];
+    const auto &presentCompleteSemaphore =
+        m_presentCompleteSemaphores[m_frameIndex];
 
     const auto &device = m_context.GetDevice();
     const auto fenceResult =
         m_context.GetDevice().waitForFences(*fence, vk::True, UINT64_MAX);
+
+    auto &cmdBuffer = m_commandBuffers[m_frameIndex];
 
     if (fenceResult != vk::Result::eSuccess)
     {
@@ -150,9 +152,10 @@ FrameInfo Swapchain::BeginFrame()
     }
     device.resetFences(*fence);
 
-    auto [result, imageIndex] = m_swapChain.acquireNextImage(
+    const auto [result, imageIndex] = m_swapChain.acquireNextImage(
         UINT64_MAX, *presentCompleteSemaphore, nullptr);
     m_imageIndex = imageIndex;
+
     auto &image = m_swapChainImages[m_imageIndex];
     auto &imageView = m_swapChainImageViews[m_imageIndex];
 
@@ -167,16 +170,16 @@ FrameInfo Swapchain::BeginFrame()
         vk::PipelineStageFlagBits2::eColorAttachmentOutput,
         vk::PipelineStageFlagBits2::eColorAttachmentOutput);
 
-    vk::ClearValue clearColor = vk::ClearColorValue(0.0f, 0.0f, 0.0f, 1.0f);
+    const auto clearColor = vk::ClearColorValue(0.0f, 0.0f, 0.0f, 1.0f);
 
-    vk::RenderingAttachmentInfo attachmentInfo = {
+    const vk::RenderingAttachmentInfo attachmentInfo = {
         .imageView = imageView,
         .imageLayout = vk::ImageLayout::eColorAttachmentOptimal,
         .loadOp = vk::AttachmentLoadOp::eClear,
         .storeOp = vk::AttachmentStoreOp::eStore,
         .clearValue = clearColor};
 
-    vk::RenderingInfo renderingInfo = {
+    const vk::RenderingInfo renderingInfo = {
         .renderArea = {.offset = {0, 0}, .extent = m_swapExtent},
         .layerCount = 1,
         .colorAttachmentCount = 1,
@@ -189,11 +192,15 @@ FrameInfo Swapchain::BeginFrame()
 
 void Swapchain::EndFrame()
 {
+    const auto &fence = m_inFlightFences[m_frameIndex];
+    const auto &presentCompleteSemaphore =
+        m_presentCompleteSemaphores[m_frameIndex];
+
+    const auto &renderFinishedSemaphore =
+        m_renderFinishedSemaphores[m_imageIndex];
+
     auto &cmdBuffer = m_commandBuffers[m_frameIndex];
     auto &image = m_swapChainImages[m_imageIndex];
-    auto &fence = m_inFlightFences[m_frameIndex];
-    auto &presentCompleteSemaphore = m_presentCompleteSemaphores[m_frameIndex];
-    auto &renderFinishedSemaphore = m_renderFinishedSemaphores[m_imageIndex];
 
     cmdBuffer.endRendering();
 
@@ -205,8 +212,8 @@ void Swapchain::EndFrame()
         vk::PipelineStageFlagBits2::eBottomOfPipe);
     cmdBuffer.end();
 
-    vk::PipelineStageFlags waitDestinationStageMask(
-        vk::PipelineStageFlagBits::eColorAttachmentOutput);
+    const vk::PipelineStageFlags waitDestinationStageMask{
+        vk::PipelineStageFlagBits::eColorAttachmentOutput};
     const vk::SubmitInfo submitInfo{
         .waitSemaphoreCount = 1,
         .pWaitSemaphores = &(*presentCompleteSemaphore),
