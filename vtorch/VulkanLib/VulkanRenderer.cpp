@@ -50,4 +50,7 @@ VulkanRenderer::VulkanRenderer(GLFWwindow *window)
       m_graphicsPipeline(CreateGraphicsPipeline(m_context, m_swapchain))
 {
 }
+
+VulkanRenderer::~VulkanRenderer() { m_context.GetDevice().waitIdle(); }
+
 void VulkanRenderer::Init() {}

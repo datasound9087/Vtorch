@@ -10,6 +10,7 @@ class VulkanRenderer : public IRenderer
 {
    public:
     VulkanRenderer(GLFWwindow *window);
+    ~VulkanRenderer();
     void Init() override;
 
    private:
