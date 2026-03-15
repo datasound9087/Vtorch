@@ -210,8 +210,15 @@ Context::Context(GLFWwindow *window)
             return (qfp.queueFlags & vk::QueueFlagBits::eGraphics) !=
                    static_cast<vk::QueueFlags>(0);
         });
-    auto graphicsIndex = static_cast<uint32_t>(std::distance(
+    const auto graphicsIndex = static_cast<uint32_t>(std::distance(
         queueFamilyProperties.begin(), graphicsQueueFamilyProperty));
+    // If the found physical device does not support presentation from its
+    // graphics queue, fail
+    if (!m_physicalDevice.getSurfaceSupportKHR(graphicsIndex, *m_surface))
+    {
+        throw std::runtime_error(
+            "Graphics queue does not support presentation");
+    }
 
     const float queuePriority = 0.5f;
     std::vector<vk::DeviceQueueCreateInfo> queueCreateInfos = {
