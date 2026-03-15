@@ -1,5 +1,6 @@
 #pragma once
 #include "Context.h"
+#include "GraphicsPipelineBuilder.h"
 #include "RendererLib/IRenderer.h"
 #include "Swapchain.h"
 
@@ -14,4 +15,5 @@ class VulkanRenderer : public IRenderer
    private:
     Context m_context;
     Swapchain m_swapchain;
+    GraphicsPipeline m_graphicsPipeline;
 };

@@ -148,6 +148,7 @@ def _impl(ctx):
         "/wd4625",
         "/wd4626",
         "/wd5045",
+        "/wd5027",
         "/Zc:__cplusplus",
         "/Zc:__STDC__",
         "/Zc:wchar_t",

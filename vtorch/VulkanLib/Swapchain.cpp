@@ -24,6 +24,8 @@ Swapchain::Swapchain(Context &context, GLFWwindow *window)
             "Failed to find supported image format for swapchain");
     }
 
+    m_format = formatIt->format;
+
     const bool tripleBuffering =
         std::ranges::any_of(swapchainInfo.presentModes, [](const auto value)
                             { return value == vk::PresentModeKHR::eMailbox; });
@@ -102,3 +104,5 @@ Swapchain::Swapchain(Context &context, GLFWwindow *window)
                                            imageViewCreateInfo);
     }
 }
+
+const vk::Format &Swapchain::GetFormat() const { return m_format; }
