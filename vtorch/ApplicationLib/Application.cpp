@@ -29,7 +29,7 @@ void Application::Run()
     }
 
     LOG_ALL("Initialising renderer...");
-    m_renderer = std::make_unique<VulkanRenderer>();
+    m_renderer = std::make_unique<VulkanRenderer>(m_window);
     LOG_ALL("Renderer initialised");
 
     RunGameLoop();

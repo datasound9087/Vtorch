@@ -2,10 +2,12 @@
 #include "Context.h"
 #include "RendererLib/IRenderer.h"
 
+#include <GLFW/glfw3.h>
+
 class VulkanRenderer : public IRenderer
 {
    public:
-    VulkanRenderer();
+    VulkanRenderer(GLFWwindow *window);
     void Init() override;
 
    private:

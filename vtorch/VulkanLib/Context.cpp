@@ -142,7 +142,7 @@ namespace
     }
 } // namespace
 
-Context::Context()
+Context::Context(GLFWwindow *window)
 {
     LOG_DEBUG("Creating context");
     const vk::ApplicationInfo appInfo{.pApplicationName = "VTorch Application",
@@ -182,6 +182,14 @@ Context::Context()
 
     m_debugMessenger = m_instance.createDebugUtilsMessengerEXT(
         debugUtilsMessengerCreateInfoEXT);
+
+    VkSurfaceKHR surface;
+    if (glfwCreateWindowSurface(*m_instance, window, nullptr, &surface) !=
+        VK_SUCCESS)
+    {
+        throw std::runtime_error("failed to create window surface!");
+    }
+    m_surface = vk::raii::SurfaceKHR(m_instance, surface);
 
     const auto physicalDevices = m_instance.enumeratePhysicalDevices();
     if (physicalDevices.empty())

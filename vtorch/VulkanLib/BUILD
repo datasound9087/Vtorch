@@ -12,10 +12,10 @@ my_library(
     ],
     implementation_deps = [
         "//vtorch/LoggingLib",
-        "@glfw",
     ],
     deps = [
         "//vtorch/RendererLib",
+        "@glfw",
         "@vk_sdk//:vulkan",
         "@vma",
     ],
