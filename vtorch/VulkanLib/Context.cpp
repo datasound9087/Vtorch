@@ -249,3 +249,14 @@ Context::Context(GLFWwindow *window)
 
     m_graphicsQueue = vk::raii::Queue(m_device, graphicsIndex, 0);
 }
+
+const SwapchainInfo Context::GetSwapchainInfo() const
+{
+    return SwapchainInfo{
+        .surface = *m_surface,
+        .capabilities = m_physicalDevice.getSurfaceCapabilitiesKHR(m_surface),
+        .formats = m_physicalDevice.getSurfaceFormatsKHR(m_surface),
+        .presentModes = m_physicalDevice.getSurfacePresentModesKHR(m_surface)};
+}
+
+const vk::raii::Device &Context::GetDevice() const { return m_device; }
