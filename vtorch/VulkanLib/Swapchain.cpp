@@ -187,7 +187,7 @@ FrameInfo Swapchain::BeginFrame()
 
     cmdBuffer.beginRendering(renderingInfo);
 
-    return FrameInfo{.commandBuffer = &cmdBuffer};
+    return FrameInfo{.commandBuffer = cmdBuffer, .frameExtent = m_swapExtent};
 }
 
 void Swapchain::EndFrame()

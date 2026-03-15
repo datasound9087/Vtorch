@@ -6,7 +6,8 @@
 
 struct FrameInfo
 {
-    vk::raii::CommandBuffer *commandBuffer;
+    vk::raii::CommandBuffer &commandBuffer;
+    vk::Extent2D &frameExtent;
 };
 
 class Swapchain
