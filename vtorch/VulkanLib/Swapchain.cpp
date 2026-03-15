@@ -83,4 +83,22 @@ Swapchain::Swapchain(Context &context, GLFWwindow *window)
     m_swapChain =
         vk::raii::SwapchainKHR(context.GetDevice(), swapChainCreateInfo);
     m_swapChainImages = m_swapChain.getImages();
+
+    vk::ImageViewCreateInfo imageViewCreateInfo{
+        .viewType = vk::ImageViewType::e2D,
+        .format = formatIt->format,
+        // components can be used for channel swizzling/remappng
+        // .components = ...,
+        // Purpose and what will be accessed
+        .subresourceRange = {.aspectMask = vk::ImageAspectFlagBits::eColor,
+                             // No mipmapping or multiple layers
+                             .levelCount = 1,
+                             .layerCount = 1}};
+
+    for (auto &image : m_swapChainImages)
+    {
+        imageViewCreateInfo.image = image;
+        m_swapChainImageViews.emplace_back(context.GetDevice(),
+                                           imageViewCreateInfo);
+    }
 }
