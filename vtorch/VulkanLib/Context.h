@@ -1,4 +1,5 @@
 #pragma once
+#include "VulkanAllocator.h"
 #include "VulkanIncluder.h"
 #include <GLFW/glfw3.h>
 #include <vector>
@@ -20,6 +21,7 @@ class Context
     const vk::raii::Device &GetDevice() const;
     uint32_t GraphicsIndex() const;
     const vk::raii::Queue &GraphicsQueue() const;
+    const VulkanAllocator &GetAllocator() const;
 
    private:
     vk::raii::Context m_context;
@@ -32,4 +34,6 @@ class Context
     vk::raii::Device m_device{nullptr};
 
     vk::raii::Queue m_graphicsQueue{nullptr};
+
+    VulkanAllocator m_vmaAllocator{nullptr};
 };

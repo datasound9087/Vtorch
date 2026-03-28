@@ -16,8 +16,9 @@ my_library(
         "//vtorch/LoggingLib",
     ],
     deps = [
-        "//vtorch/RendererLib",
         "//vtorch/EventLib",
+        "//vtorch/RendererLib",
+        "//vtorch/VulkanLib/Impl",
         "@glfw",
         "@gsl",
         "@vk_sdk//:vulkan",

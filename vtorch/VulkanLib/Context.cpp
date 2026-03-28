@@ -5,6 +5,7 @@
 #include <ranges>
 #include <string>
 #include <vector>
+#include <vk_mem_alloc.h>
 
 namespace
 {
@@ -256,6 +257,21 @@ Context::Context(GLFWwindow *window)
     m_device = vk::raii::Device(m_physicalDevice, deviceCreateInfo);
 
     m_graphicsQueue = vk::raii::Queue(m_device, m_graphicsIndex, 0);
+
+    // Initialise VMA
+    VmaVulkanFunctions vkFunctions{.vkGetInstanceProcAddr =
+                                       vkGetInstanceProcAddr,
+                                   .vkGetDeviceProcAddr = vkGetDeviceProcAddr,
+                                   .vkCreateImage = vkCreateImage};
+
+    VmaAllocatorCreateInfo vmaAllocatorCreateInfo{
+        .flags = VMA_ALLOCATOR_CREATE_BUFFER_DEVICE_ADDRESS_BIT,
+        .physicalDevice = *m_physicalDevice,
+        .device = *m_device,
+        .pVulkanFunctions = &vkFunctions,
+        .instance = *m_instance};
+
+    m_vmaAllocator = VulkanAllocator(vmaAllocatorCreateInfo);
 }
 
 const SwapchainInfo Context::GetSwapchainInfo() const
@@ -275,3 +291,5 @@ const vk::raii::Queue &Context::GraphicsQueue() const
 {
     return m_graphicsQueue;
 }
+
+const VulkanAllocator &Context::GetAllocator() const { return m_vmaAllocator; }
