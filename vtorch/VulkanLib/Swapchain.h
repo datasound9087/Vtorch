@@ -9,9 +9,12 @@ struct FrameInfo
 {
     // If the window is resizing, notify to skip this frame. NOTE: If this is
     // true, all other attributes can be considered invalid.
-    bool resizing{false};
-    vk::raii::CommandBuffer &commandBuffer;
-    vk::Extent2D &frameExtent;
+    vk::Extent2D &extent;
+    bool skip{false};
+
+    vk::Image image;
+    vk::ImageView imageView;
+    vk::CommandBuffer commandBuffer;
 };
 
 class Swapchain
