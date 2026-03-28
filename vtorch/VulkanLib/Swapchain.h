@@ -9,9 +9,10 @@ struct FrameInfo
 {
     // If the window is resizing, notify to skip this frame. NOTE: If this is
     // true, all other attributes can be considered invalid.
-    vk::Extent2D &extent;
     bool skip{false};
 
+    vk::Extent2D extent;
+    vk::Format format;
     vk::Image image;
     vk::ImageView imageView;
     vk::CommandBuffer commandBuffer;

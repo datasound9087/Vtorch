@@ -64,7 +64,7 @@ FrameInfo Swapchain::BeginFrame()
     if (m_minimised)
     {
         // The window is minimised and has a size of zero. Cannot be rendered to
-        return FrameInfo{.extent = m_swapExtent, .skip = true};
+        return FrameInfo{.skip = true};
     }
 
     const auto [result, imageIndex] = m_swapChain.acquireNextImage(
@@ -75,7 +75,7 @@ FrameInfo Swapchain::BeginFrame()
         RecreateSwapchain();
 
         // Signal that we want to skip this frame
-        return FrameInfo{.extent = m_swapExtent, .skip = true};
+        return FrameInfo{.skip = true};
     }
     else if (result != vk::Result::eSuccess)
     {
@@ -118,6 +118,7 @@ FrameInfo Swapchain::BeginFrame()
     cmdBuffer.beginRendering(renderingInfo);
 
     return FrameInfo{.extent = m_swapExtent,
+                     .format = m_format,
                      .image = image,
                      .imageView = imageView,
                      .commandBuffer = cmdBuffer};

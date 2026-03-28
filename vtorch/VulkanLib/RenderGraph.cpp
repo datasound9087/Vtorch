@@ -2,10 +2,13 @@
 
 RenderGraph::RenderGraph(Context &context) : m_context(context) {}
 
-void RenderGraph::AddResource(const RenderResource & /*resource*/) {}
+void RenderGraph::AddResource(const std::string & /*name*/,
+                              const RenderResource & /*resource*/)
+{
+}
 
 void RenderGraph::AddPass(const RenderPass & /*pass*/) {}
 
 void RenderGraph::Compile() {}
 
-void RenderGraph::Render(vk::raii::CommandBuffer & /*cmdBuffer*/) {}
+void RenderGraph::Render(vk::CommandBuffer & /*cmdBuffer*/) {}

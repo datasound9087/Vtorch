@@ -2,6 +2,7 @@
 #include "Context.h"
 #include "EventLib/EventBus.h"
 #include "GraphicsPipelineBuilder.h"
+#include "RenderGraph.h"
 #include "RendererLib/IRenderer.h"
 #include "Swapchain.h"
 
@@ -18,6 +19,8 @@ class VulkanRenderer : public IRenderer
    private:
     Context m_context;
     Swapchain m_swapchain;
+    RenderGraph m_renderGraph;
+
     GraphicsPipeline m_graphicsPipeline;
 
     // Event subscriptions are RAII based, so must keep in scope.

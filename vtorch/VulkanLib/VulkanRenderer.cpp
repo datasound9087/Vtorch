@@ -48,6 +48,7 @@ namespace
 
 VulkanRenderer::VulkanRenderer(GLFWwindow *window, event::SystemBus &systemBus)
     : m_context(window), m_swapchain(m_context, window),
+      m_renderGraph(m_context),
       m_graphicsPipeline(CreateGraphicsPipeline(m_context, m_swapchain))
 {
     // Handle swapchain resize
@@ -70,12 +71,16 @@ void VulkanRenderer::RenderFrame()
 
     const auto endFrame = gsl::finally([&]() { m_swapchain.EndFrame(); });
 
-    auto &cmdBuffer = frame.commandBuffer;
-    cmdBuffer.bindPipeline(vk::PipelineBindPoint::eGraphics,
-                           m_graphicsPipeline.pipeline);
-    cmdBuffer.setViewport(
-        0, vk::Viewport(0.0f, 0.0f, static_cast<float>(frame.extent.width),
-                        static_cast<float>(frame.extent.height), 0.0f, 1.0f));
-    cmdBuffer.setScissor(0, vk::Rect2D(vk::Offset2D(0, 0), frame.extent));
-    cmdBuffer.draw(3, 1, 0, 0);
+    // Add swapchain image to render to
+    m_renderGraph.AddResource(
+        RenderGraph::Swapchain,
+        {.format = frame.format,
+         .extent = frame.extent,
+         .initialLayout = vk::ImageLayout::eColorAttachmentOptimal,
+         .finalLayout = vk::ImageLayout::ePresentSrcKHR,
+         .image = frame.image,
+         .imageView = frame.imageView});
+
+    m_renderGraph.Compile();
+    m_renderGraph.Render(frame.commandBuffer);
 }
