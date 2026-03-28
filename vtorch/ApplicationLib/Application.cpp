@@ -1,10 +1,24 @@
 #include "Application.h"
 
+#include "EventLib/EventBus.h"
 #include "LoggingLib/Logging.h"
 #include "VulkanLib/VulkanRenderer.h"
 #include <GLFW/glfw3.h>
 #include <gsl/gsl>
 #include <stdexcept>
+
+namespace
+{
+    void ResizeFrameBufferCallback(GLFWwindow *window, int width,
+                                   int height) noexcept
+    {
+        auto app =
+            reinterpret_cast<Application *>(glfwGetWindowUserPointer(window));
+
+        app->OnResize(width, height);
+    }
+
+} // namespace
 
 Application::Application(const ApplicationArgs &args) : m_appArgs(args) {}
 
@@ -28,11 +42,21 @@ void Application::Run()
                                   glfwGetError(nullptr));
     }
 
+    glfwSetWindowUserPointer(m_window, this);
+    glfwSetFramebufferSizeCallback(m_window, ResizeFrameBufferCallback);
+
     LOG_ALL("Initialising renderer...");
     m_renderer = std::make_unique<VulkanRenderer>(m_window);
     LOG_ALL("Renderer initialised");
 
     RunGameLoop();
+}
+
+void Application::OnResize(const int width, const int height)
+{
+    LOG_DEBUG("OnResize");
+    events::WindowResize resizeEvent{.width = width, .height = height};
+    std::ignore = m_eventBus.publish(resizeEvent);
 }
 
 void Application::RunGameLoop()

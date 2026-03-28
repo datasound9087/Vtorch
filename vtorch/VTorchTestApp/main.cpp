@@ -7,7 +7,11 @@
 class VTorchTestApp : public Application
 {
    public:
-    VTorchTestApp() : Application({.name = "Vtorch test app"}) {}
+    VTorchTestApp()
+        : Application({.name = "Vtorch test app", .resizable = true})
+    {
+    }
+    ~VTorchTestApp() = default;
 };
 
 int main()

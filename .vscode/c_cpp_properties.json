@@ -4,7 +4,13 @@
             "name": "Win32",
             "includePath": [
                 "${workspaceFolder}/**",
-                "${workspaceFolder}/vtorch"
+                "${workspaceFolder}/vtorch",
+                "bazel-vtorch\\external\\+http_archive+glfw\\include",
+                "bazel-vtorch\\external\\+http_archive+gsl\\include",
+                "bazel-vtorch\\external\\+http_archive+spdlog\\include",
+                "bazel-vtorch\\external\\+http_archive+vma\\include",
+                "bazel-vtorch\\external\\rules_vulkan++vulkan_sdk+vk_sdk\\sdk\\Include",
+                "bazel-vtorch\\external\\+http_archive+eventbus\\include"
             ],
             "windowsSdkVersion": "10.0.26100.0",
             "compilerPath": "cl.exe",

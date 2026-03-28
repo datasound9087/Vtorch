@@ -9,7 +9,7 @@ namespace
     {
         LOG_DEBUG("Creatng pipeline");
         GraphicsPipelineBuilder builder{context};
-        builder.Shader("C:/Users/Sam/dev/Vtorch/bazel-out/x64_windows-"
+        builder.Shader("D:/dev/Vtorch/bazel-out/x64_windows-"
                        "fastbuild/bin/shaders/triangle.spirv",
                        vk::ShaderStageFlagBits::eVertex |
                            vk::ShaderStageFlagBits::eFragment);

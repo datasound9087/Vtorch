@@ -69,6 +69,14 @@ http_archive(
     url = "https://github.com/GPUOpen-LibrariesAndSDKs/VulkanMemoryAllocator/archive/refs/tags/v3.3.0.zip",
 )
 
+http_archive(
+    name = "eventbus",
+    build_file = "//tools/external:eventbus.BUILD",
+    sha256 = "FF019DA7C782641358FF23A7AFA24FAD972E90737686490971E027B0CA3D299C",
+    strip_prefix = "eventbus-0.1.0",
+    url = "https://github.com/merlotqi/eventbus/archive/refs/tags/v0.1.0.zip",
+)
+
 register_toolchains(
     "//tools/bazel/windows:cc_toolchain_for_windows_x86_64",
 )

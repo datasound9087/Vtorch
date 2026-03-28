@@ -43,7 +43,8 @@ namespace
             if (std::ranges::none_of(
                     extensionProperties,
                     [glfwExtension =
-                         glfwExtensions[i]](auto const &extensionProperty) {
+                         glfwExtensions[i]](auto const &extensionProperty)
+                    {
                         return strcmp(extensionProperty.extensionName,
                                       glfwExtension) == 0;
                     }))
@@ -228,10 +229,17 @@ Context::Context(GLFWwindow *window)
 
     // Create a chain of feature structures
     vk::StructureChain<vk::PhysicalDeviceFeatures2,
+                       vk::PhysicalDeviceVulkan12Features,
                        vk::PhysicalDeviceVulkan13Features,
                        vk::PhysicalDeviceExtendedDynamicStateFeaturesEXT>
         featureChain = {// vk::PhysicalDeviceFeatures2
                         {},
+                        // Vulkan 1.2
+                        {.descriptorIndexing = true,
+                         .shaderSampledImageArrayNonUniformIndexing = true,
+                         .descriptorBindingVariableDescriptorCount = true,
+                         .runtimeDescriptorArray = true,
+                         .bufferDeviceAddress = true},
                         // Enable dynamic rendering from Vulkan 1.3
                         {.synchronization2 = true, .dynamicRendering = true},
                         // Enable extended dynamic state
