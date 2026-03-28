@@ -46,10 +46,13 @@ namespace
     }
 } // namespace
 
-VulkanRenderer::VulkanRenderer(GLFWwindow *window)
+VulkanRenderer::VulkanRenderer(GLFWwindow *window, event::SystemBus &systemBus)
     : m_context(window), m_swapchain(m_context, window),
       m_graphicsPipeline(CreateGraphicsPipeline(m_context, m_swapchain))
 {
+    // Handle swapchain resize
+    m_resizeEventSub = systemBus.subscribe<events::WindowResize>(
+        [&](const auto &resize) { m_swapchain.Resize(resize); });
 }
 
 VulkanRenderer::~VulkanRenderer() { m_context.GetDevice().waitIdle(); }
@@ -59,6 +62,12 @@ void VulkanRenderer::Init() {}
 void VulkanRenderer::RenderFrame()
 {
     auto frameInfo = m_swapchain.BeginFrame();
+    // If the swapchain has resized, skip the frame as it cannot be rendered to
+    if (frameInfo.resizing)
+    {
+        return;
+    }
+
     const auto endFrame = gsl::finally([&]() { m_swapchain.EndFrame(); });
 
     auto &cmdBuffer = frameInfo.commandBuffer;

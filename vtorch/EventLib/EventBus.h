@@ -12,4 +12,6 @@ namespace event
         eventbus::EventBus<eventbus::Synchronous, eventbus::UnboundedQueue,
                            eventbus::BlockProducer, events::WindowResize>;
 
+    using Subscription = eventbus::Subscription;
+
 } // namespace event

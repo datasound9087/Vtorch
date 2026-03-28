@@ -46,7 +46,7 @@ void Application::Run()
     glfwSetFramebufferSizeCallback(m_window, ResizeFrameBufferCallback);
 
     LOG_ALL("Initialising renderer...");
-    m_renderer = std::make_unique<VulkanRenderer>(m_window);
+    m_renderer = std::make_unique<VulkanRenderer>(m_window, m_eventBus);
     LOG_ALL("Renderer initialised");
 
     RunGameLoop();
