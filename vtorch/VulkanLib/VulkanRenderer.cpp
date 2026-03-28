@@ -61,23 +61,21 @@ void VulkanRenderer::Init() {}
 
 void VulkanRenderer::RenderFrame()
 {
-    auto frameInfo = m_swapchain.BeginFrame();
+    auto frame = m_swapchain.BeginFrame();
     // If the swapchain has resized, skip the frame as it cannot be rendered to
-    if (frameInfo.resizing)
+    if (frame.skip)
     {
         return;
     }
 
     const auto endFrame = gsl::finally([&]() { m_swapchain.EndFrame(); });
 
-    auto &cmdBuffer = frameInfo.commandBuffer;
+    auto &cmdBuffer = frame.commandBuffer;
     cmdBuffer.bindPipeline(vk::PipelineBindPoint::eGraphics,
                            m_graphicsPipeline.pipeline);
     cmdBuffer.setViewport(
-        0, vk::Viewport(
-               0.0f, 0.0f, static_cast<float>(frameInfo.frameExtent.width),
-               static_cast<float>(frameInfo.frameExtent.height), 0.0f, 1.0f));
-    cmdBuffer.setScissor(0,
-                         vk::Rect2D(vk::Offset2D(0, 0), frameInfo.frameExtent));
+        0, vk::Viewport(0.0f, 0.0f, static_cast<float>(frame.extent.width),
+                        static_cast<float>(frame.extent.height), 0.0f, 1.0f));
+    cmdBuffer.setScissor(0, vk::Rect2D(vk::Offset2D(0, 0), frame.extent));
     cmdBuffer.draw(3, 1, 0, 0);
 }
